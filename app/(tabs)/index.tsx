@@ -78,18 +78,21 @@ export default function Index() {
       }
 
       const formData = new FormData();
-      formData.append('file', {
-        uri: photoUri,
-        type: 'image/jpeg',
-        name: 'frame.jpg'
-      } as any);
+      if (Platform.OS === 'web') {
+        const response = await fetch(photoUri);
+        const blob = await response.blob();
+        formData.append('file', blob, 'frame.jpg');
+      } else {
+        formData.append('file', {
+          uri: photoUri,
+          type: 'image/jpeg',
+          name: 'frame.jpg'
+        } as any);
+      }
 
       const response = await fetch(`http://${IP}:${PORT}/detect_frame`, {
         method: 'POST',
         body: formData,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
       });
 
       if (!response.ok) {
