@@ -20,4 +20,4 @@ COPY . .
 EXPOSE 8080
 
 # Команда для запуска приложения
-RUN "npm run web" 
+CMD ["npm", "run", "web"] 
