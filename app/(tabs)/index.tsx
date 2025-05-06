@@ -84,7 +84,7 @@ export default function Index() {
         name: 'frame.jpg'
       } as any);
 
-      const response = await fetch(`http://${IP}:${PORT}/detect_frame`, {
+      const response = await fetch(`https://${IP}:${PORT}/detect_frame`, {
         method: 'POST',
         body: formData,
         headers: {
@@ -106,7 +106,7 @@ export default function Index() {
 
       if (data.objects && data.objects.length > 0) {
         console.log('Detected objects:', data.objects.map((obj: DetectionBox) => ({
-          class: obj.cls,
+          class: obj.class,
           confidence: Math.round(obj.confidence * 100),
           coordinates: obj.coords
         })));
