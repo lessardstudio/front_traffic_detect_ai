@@ -38,6 +38,10 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "IP": "150.241.105.221",
+      "PORT": 80
     }
   }
 }

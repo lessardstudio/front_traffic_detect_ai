@@ -1,7 +1,8 @@
+import { CameraView, useCameraPermissions } from 'expo-camera';
+import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native';
-import { Camera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
 
 interface DetectionBox {
   cls: string;
@@ -20,21 +21,21 @@ interface VideoDetection {
 }
 
 export default function Index() {
-  const { hasPermission, requestPermission } = useCameraPermission();
+  const [permission, requestPermission] = useCameraPermissions();
   const [isConnected, setIsConnected] = useState<boolean>(true);
   const [results, setResults] = useState<DetectionBox[]>([]);
-  const cameraRef = useRef<Camera | null>(null);
+  const [lastTimestamp, setLastTimestamp] = useState<string>('');
+  const cameraRef = useRef<CameraView | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [isTakingPicture, setIsTakingPicture] = useState<boolean>(false);
   const [isCameraReady, setIsCameraReady] = useState<boolean>(false);
   const lastCaptureTime = useRef<number>(0);
   const animationFrameRef = useRef<number | null>(null);
-  const device = useCameraDevice('back');
-  const IP: string = '150.241.105.221';
-  const PORT: number = 80;
+  const IP: string = Constants.expoConfig?.extra?.IP || 'localhost';
+  const PORT: number = Constants.expoConfig?.extra?.PORT || 80;
 
   const captureAndProcess = async () => {
-    if (!cameraRef.current || isTakingPicture || !isCameraReady || !device) return;
+    if (!cameraRef.current || isTakingPicture || !isCameraReady) return;
 
     const now = Date.now();
     if (now - lastCaptureTime.current < 5000) return;
@@ -61,43 +62,12 @@ export default function Index() {
         }
       } else {
         try {
-          const tempDir = FileSystem.cacheDirectory;
-          if (!tempDir) throw new Error('Cache directory not available');
-          
-          const tempFile = `${tempDir}frame_${Date.now()}.jpg`;
-          
-          await new Promise<void>((resolve) => {
-            const captureFrame = async () => {
-              if (cameraRef.current) {
-                try {
-                  const photo = await cameraRef.current.takePhoto({
-                    flash: 'off',
-                    enableShutterSound: false
-                  });
-                  
-                  await FileSystem.copyAsync({
-                    from: photo.path,
-                    to: tempFile
-                  });
-                  
-                  photoUri = tempFile;
-                  resolve();
-                } catch (error) {
-                  console.error('Error capturing frame:', error);
-                  resolve();
-                }
-              } else {
-                resolve();
-              }
-            };
-            
-            if (animationFrameRef.current) {
-              cancelAnimationFrame(animationFrameRef.current);
-            }
-            animationFrameRef.current = requestAnimationFrame(() => {
-              requestAnimationFrame(captureFrame);
-            });
+          const result = await cameraRef.current.takePictureAsync({
+            quality: 0.3,
+            skipProcessing: true,
+            exif: false
           });
+          photoUri = result?.uri || null;
         } catch (error) {
           console.error('Error capturing frame:', error);
           return;
@@ -131,6 +101,9 @@ export default function Index() {
       console.log('Server response:', data);
       setResults(data.objects || []);
       setIsConnected(true);
+      if (data.timestamp) {
+        setLastTimestamp(data.timestamp);
+      }
 
       if (data.objects && data.objects.length > 0) {
         console.log('Detected objects:', data.objects.map((obj: DetectionBox) => ({
@@ -142,7 +115,7 @@ export default function Index() {
         console.log('No objects detected');
       }
 
-      if (Platform.OS !== 'web' && photoUri.startsWith(FileSystem.cacheDirectory || '')) {
+      if (Platform.OS !== 'web' && photoUri && FileSystem.cacheDirectory && photoUri.startsWith(FileSystem.cacheDirectory)) {
         try {
           await FileSystem.deleteAsync(photoUri);
         } catch (error) {
@@ -160,7 +133,7 @@ export default function Index() {
 
   useEffect(() => {
     let isMounted = true;
-    let intervalId: NodeJS.Timeout;
+    let intervalId: NodeJS.Timeout | number;
 
     const startCapture = () => {
       intervalId = setInterval(() => {
@@ -185,7 +158,7 @@ export default function Index() {
     };
   }, [isCameraReady]);
 
-  if (!hasPermission) {
+  if (!permission?.granted) {
     return (
       <View style={styles.container}>
         <Text style={styles.text}>Требуется доступ к камере</Text>
@@ -196,7 +169,7 @@ export default function Index() {
         )}
         <Text onPress={async () => {
           const result = await requestPermission();
-          if (Platform.OS === 'web' && result) {
+          if (Platform.OS === 'web' && result.granted) {
             console.log('Web permission granted');
           }
         }} style={styles.permissionButton}>
@@ -206,27 +179,18 @@ export default function Index() {
     );
   }
 
-  if (!device) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.text}>Камера не найдена</Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
-      <Camera
+      <CameraView
         style={styles.camera}
-        device={device}
+        facing="back"
         ref={cameraRef}
-        isActive={true}
-        photo={true}
-        onInitialized={() => {
+        onCameraReady={() => {
           console.log('Camera is ready');
           setIsCameraReady(true);
         }}
-        onError={(error) => console.error('Camera error:', error)}
+        onMountError={(error) => console.error('Camera mount error:', error)}
+        active={true}
       />
       
       <View style={styles.statusBar}>
@@ -237,6 +201,11 @@ export default function Index() {
       </View>
       
       <View style={styles.resultsContainer}>
+        {lastTimestamp ? (
+          <Text style={styles.timestampText}>
+            Последнее обновление: {lastTimestamp}
+          </Text>
+        ) : null}
         {results.slice(-5).map((item, index) => (
           <Text key={index} style={styles.resultText}>
             {item.cls} ({Math.round(item.confidence * 100)}%)
@@ -287,6 +256,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginVertical: 2,
     color: 'white',
+  },
+  timestampText: {
+    fontSize: 14,
+    marginBottom: 8,
+    color: 'yellow',
+    textAlign: 'center',
   },
   text: {
     fontSize: 16,
