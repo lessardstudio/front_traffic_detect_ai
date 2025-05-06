@@ -1,11 +1,10 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native';
 
 interface DetectionBox {
-  cls: string;
+  class: string;
   confidence: number;
   coords: number[];
 }
@@ -31,8 +30,8 @@ export default function Index() {
   const [isCameraReady, setIsCameraReady] = useState<boolean>(false);
   const lastCaptureTime = useRef<number>(0);
   const animationFrameRef = useRef<number | null>(null);
-  const IP: string = Constants.expoConfig?.extra?.IP || 'localhost';
-  const PORT: number = Constants.expoConfig?.extra?.PORT || 80;
+  const IP: string = '150.241.105.221';
+  const PORT: number = 80;
 
   const captureAndProcess = async () => {
     if (!cameraRef.current || isTakingPicture || !isCameraReady) return;
@@ -140,7 +139,7 @@ export default function Index() {
         if (isMounted) {
           captureAndProcess();
         }
-      }, 5000);
+      }, 1000);
     };
 
     if (isCameraReady) {
@@ -208,7 +207,7 @@ export default function Index() {
         ) : null}
         {results.slice(-5).map((item, index) => (
           <Text key={index} style={styles.resultText}>
-            {item.cls} ({Math.round(item.confidence * 100)}%)
+            {item.class} ({Math.round(item.confidence * 100)}%)
             {'\n'}Координаты: [{item.coords.join(', ')}]
           </Text>
         ))}
