@@ -84,7 +84,7 @@ export default function Index() {
         name: 'frame.jpg'
       } as any);
 
-      const response = await fetch(`https://${IP}:${PORT}/detect_frame`, {
+      const response = await fetch(`http://${IP}:${PORT}/detect_frame`, {
         method: 'POST',
         body: formData,
         headers: {
