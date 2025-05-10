@@ -10,10 +10,20 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npm install
    ```
 
+   ```bash
+   npm install -g eas-cli
+   ```
+
+
+
 2. Start the app
 
    ```bash
    npx expo start
+   ```
+3. Build APK file(android)
+   ```bash
+   eas build -p android
    ```
 
 In the output, you'll find options to open the app in a
