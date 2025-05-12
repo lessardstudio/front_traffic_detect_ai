@@ -1,7 +1,7 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as FileSystem from 'expo-file-system';
-import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, AppState, Platform, StyleSheet, Text, View } from 'react-native';
 
 interface DetectionBox {
   class: string;
@@ -29,15 +29,28 @@ export default function Index() {
   const [isTakingPicture, setIsTakingPicture] = useState<boolean>(false);
   const [isCameraReady, setIsCameraReady] = useState<boolean>(false);
   const lastCaptureTime = useRef<number>(0);
-  const animationFrameRef = useRef<number | null>(null);
+  const frameId = useRef<number | null>(null);
+  const appState = useRef(AppState.currentState);
   const IP: string = '150.241.105.221';
   const PORT: number = 80;
 
-  const captureAndProcess = async () => {
+  const handleCameraReady = useCallback(() => {
+    console.log('Camera is ready');
+    setTimeout(() => {
+      setIsCameraReady(true);
+    }, 1000);
+  }, []);
+
+  const handleCameraError = useCallback((error: any) => {
+    console.error('Camera mount error:', error);
+    setIsCameraReady(false);
+  }, []);
+
+  const captureAndProcess = useCallback(async () => {
     if (!cameraRef.current || isTakingPicture || !isCameraReady) return;
 
     const now = Date.now();
-    if (now - lastCaptureTime.current < 5000) return;
+    if (now - lastCaptureTime.current < 100) return;
 
     try {
       setIsTakingPicture(true);
@@ -57,25 +70,35 @@ export default function Index() {
             context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
             const dataUrl = canvas.toDataURL('image/jpeg', 0.3);
             photoUri = dataUrl;
+          } else {
+            console.error('Invalid video dimensions or context');
+            return;
           }
+        } else {
+          console.error('Video element not found');
+          return;
         }
       } else {
         try {
+          if (!cameraRef.current) return;
+          
           const result = await cameraRef.current.takePictureAsync({
             quality: 0.3,
             skipProcessing: true,
-            exif: false
+            exif: false,
+            base64: false,
+            isImageMirror: false
           });
-          photoUri = result?.uri || null;
+          
+          if (!result?.uri) return;
+          photoUri = result.uri;
         } catch (error) {
           console.error('Error capturing frame:', error);
           return;
         }
       }
 
-      if (!photoUri) {
-        throw new Error('No photo data available');
-      }
+      if (!photoUri) return;
 
       const formData = new FormData();
       if (Platform.OS === 'web') {
@@ -131,34 +154,51 @@ export default function Index() {
       setIsTakingPicture(false);
       setLoading(false);
     }
-  };
+  }, [isCameraReady, isTakingPicture]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+        setIsCameraReady(true);
+      } else if (nextAppState.match(/inactive|background/)) {
+        setIsCameraReady(false);
+        setIsTakingPicture(false);
+        setLoading(false);
+      }
+      appState.current = nextAppState;
+    });
+
+    return () => subscription.remove();
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
-    let intervalId: NodeJS.Timeout | number;
+    let timeoutId: ReturnType<typeof setTimeout>;
 
-    const startCapture = () => {
-      intervalId = setInterval(() => {
+    const captureFrame = () => {
+      if (!isMounted || !isCameraReady || isTakingPicture || appState.current !== 'active') {
+        timeoutId = setTimeout(captureFrame, 200);
+        return;
+      }
+
+      captureAndProcess().finally(() => {
         if (isMounted) {
-          captureAndProcess();
+          timeoutId = setTimeout(captureFrame, 200);
         }
-      }, 1000);
+      });
     };
 
     if (isCameraReady) {
-      startCapture();
+      timeoutId = setTimeout(captureFrame, 1000);
     }
 
     return () => {
       isMounted = false;
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
       }
     };
-  }, [isCameraReady]);
+  }, [isCameraReady, isTakingPicture, captureAndProcess]);
 
   if (!permission?.granted) {
     return (
@@ -187,12 +227,10 @@ export default function Index() {
         style={styles.camera}
         facing="back"
         ref={cameraRef}
-        onCameraReady={() => {
-          console.log('Camera is ready');
-          setIsCameraReady(true);
-        }}
-        onMountError={(error) => console.error('Camera mount error:', error)}
+        onCameraReady={handleCameraReady}
+        onMountError={handleCameraError}
         active={true}
+        mute={true}
       />
       
       <View style={styles.statusBar}>
@@ -211,7 +249,7 @@ export default function Index() {
         {results.slice(-5).map((item, index) => (
           <Text key={index} style={styles.resultText}>
             {item.class} ({Math.round(item.confidence * 100)}%)
-            {'\n'}Координаты: [{item.coords.join(', ')}]
+            {/* {'\n'}Координаты: [{item.coords.join(', ')}] */}
           </Text>
         ))}
         {results.length === 0 && (
@@ -253,11 +291,13 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     width: '90%',
+    textAlign: 'center',
   },
   resultText: {
     fontSize: 16,
     marginVertical: 2,
     color: 'white',
+    textAlign: 'center',
   },
   timestampText: {
     fontSize: 14,

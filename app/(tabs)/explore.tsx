@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Linking, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function Explore() {
   const [login, setLogin] = useState<string>('');
@@ -146,6 +146,14 @@ export default function Explore() {
           <Text style={styles.userInfoText}>Информация о пользователе:</Text>
           <Text style={styles.userInfoText}>Имя пользователя: {userInfo.username}</Text>
           {/* Добавьте другие поля из ответа API, если они есть */}
+          <TouchableOpacity 
+            style={styles.linkButton}
+            onPress={() => {
+              Linking.openURL('https://www.drom.ru/pdd/pdd/signs/');
+            }}
+          >
+            <Text style={styles.linkText}>Знаки ПДД</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
             <Text style={styles.logoutButtonText}>Выйти</Text>
           </TouchableOpacity>
@@ -270,4 +278,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  linkButton: {
+    backgroundColor: '#34C759',
+    padding: 15,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  linkText: {
+    color: '#fff',
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  toggleButton: {
+    backgroundColor: '#5856D6',
+    padding: 15,
+    borderRadius: 5,
+    marginBottom: 10,
+  }
 });
