@@ -10,7 +10,9 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "buildapp": "eas build --profile production --platform android",
-    "buildrun": "eas build:run -p android"
+    "buildappdev": "eas build --profile development --platform android",
+    "buildrun": "eas build:run -p android",
+    "buildrundev": "eas build:run -p android --profile development"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",

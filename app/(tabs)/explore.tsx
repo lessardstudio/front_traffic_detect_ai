@@ -147,12 +147,28 @@ export default function Explore() {
           <Text style={styles.userInfoText}>Имя пользователя: {userInfo.username}</Text>
           {/* Добавьте другие поля из ответа API, если они есть */}
           <TouchableOpacity 
+            style={styles.linkButtonBlue}
+            onPress={() => {
+              Linking.openURL('https://www.drom.ru/pdd/pdd/');
+            }}
+          >
+            <Text style={styles.linkText}>Правила дорожного движения</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
             style={styles.linkButton}
             onPress={() => {
               Linking.openURL('https://www.drom.ru/pdd/pdd/signs/');
             }}
           >
             <Text style={styles.linkText}>Знаки ПДД</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.linkButtonOrange}
+            onPress={() => {
+              Linking.openURL('https://www.pdd24.com/pdd-onlain');
+            }}
+          >
+            <Text style={styles.linkText}>Тестовый экзамен ПДД(билеты)</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
             <Text style={styles.logoutButtonText}>Выйти</Text>
@@ -280,6 +296,18 @@ const styles = StyleSheet.create({
   },
   linkButton: {
     backgroundColor: '#34C759',
+    padding: 15,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  linkButtonBlue: {
+    backgroundColor: '#007AFF',
+    padding: 15,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  linkButtonOrange: {
+    backgroundColor: '#FFA500',
     padding: 15,
     borderRadius: 5,
     marginTop: 10,
