@@ -1,5 +1,10 @@
+import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { Linking, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+
+type NavigationProp = {
+  navigate: (screen: string, params?: { url: string }) => void;
+};
 
 export default function Explore() {
   const [login, setLogin] = useState<string>('');
@@ -11,6 +16,7 @@ export default function Explore() {
   const [userInfo, setUserInfo] = useState<any>(null);
   const IP: string = '150.241.105.221';
   const PORT: number = 80;
+  const navigation = useNavigation<NavigationProp>();
 
   useEffect(() => {
     if (token) {
@@ -149,7 +155,7 @@ export default function Explore() {
           <TouchableOpacity 
             style={styles.linkButtonBlue}
             onPress={() => {
-              Linking.openURL('https://www.drom.ru/pdd/pdd/');
+              navigation.navigate('WebViewScreen', { url: 'https://www.drom.ru/pdd/pdd/' });
             }}
           >
             <Text style={styles.linkText}>Правила дорожного движения</Text>
@@ -157,7 +163,7 @@ export default function Explore() {
           <TouchableOpacity 
             style={styles.linkButton}
             onPress={() => {
-              Linking.openURL('https://www.drom.ru/pdd/pdd/signs/');
+              navigation.navigate('WebViewScreen', { url: 'https://www.drom.ru/pdd/pdd/signs/' });
             }}
           >
             <Text style={styles.linkText}>Знаки ПДД</Text>
@@ -165,7 +171,7 @@ export default function Explore() {
           <TouchableOpacity 
             style={styles.linkButtonOrange}
             onPress={() => {
-              Linking.openURL('https://www.pdd24.com/pdd-onlain');
+              navigation.navigate('WebViewScreen', { url: 'https://www.pdd24.com/pdd-onlain' });
             }}
           >
             <Text style={styles.linkText}>Тестовый экзамен ПДД(билеты)</Text>

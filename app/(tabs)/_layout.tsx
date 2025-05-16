@@ -39,6 +39,14 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="WebViewScreen"
+        options={{
+          title: 'WebView',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="safari.fill" color={color} />,
+          href: null, // Это скрывает вкладку из нижнего меню, если вы не хотите показывать ее там
+        }}
+      />
     </Tabs>
   );
 }
