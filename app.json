@@ -49,7 +49,7 @@
     "extra": {
       "IP": "150.241.105.221",
       "PORT": 80,
-      "devmode": true,
+      "devmode": false,
       "router": {},
       "eas": {
         "projectId": "6ffe65e4-55a2-4e99-8bb6-c63e8104a0c8"
