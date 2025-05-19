@@ -611,7 +611,7 @@ export default function Index() {
                 <Text style={styles.modalText}>Фото успешно обработано!</Text>}
                 {serverResponse && serverResponse.objects && serverResponse.objects.length > 0 && 
                   <View style={{ alignItems: 'center', maxHeight: 400, width: '90%' }}>
-                    <Text style={styles.modalText}>{currentSignData.title}</Text>
+                    {/* <Text style={styles.modalText}>{currentSignData.title}</Text> */}
                     <View style={styles.svgContainer}>
                       {renderSvg(currentSignData)}
                     </View>
@@ -635,7 +635,7 @@ export default function Index() {
                       </TouchableOpacity>
                     )}
                     
-                    <Text style={styles.descriptionText}>{currentSignData.description}</Text>
+                    {/* <Text style={styles.descriptionText}>{currentSignData.description}</Text> */}
                   </View>
                 }
                 {serverResponse && (!serverResponse.objects || serverResponse.objects.length === 0) &&
