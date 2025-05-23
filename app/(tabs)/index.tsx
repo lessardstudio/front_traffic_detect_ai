@@ -633,7 +633,19 @@ export default function Index() {
                       >
                         <Text style={styles.textStyle}>Подробнее о знаке</Text>
                       </TouchableOpacity>
+                      
                     )}
+                    
+
+                      <TouchableOpacity 
+                        style={styles.linkButtonOrange}
+                        onPress={() => {
+                          navigation.navigate('WebViewScreen', { url: 'https://www.drom.ru/pdd/themes/traffic_signs/training/' });
+                          setModalVisible(!modalVisible)
+                        }}
+                      >
+                        <Text style={styles.linkText}>Тест на 20 вопросов по знакам.</Text>
+                      </TouchableOpacity>
                     
                     {/* <Text style={styles.descriptionText}>{currentSignData.description}</Text> */}
                   </View>
@@ -877,6 +889,17 @@ const styles = StyleSheet.create({
   buttonLink: {
     backgroundColor: '#4CAF50',
     marginTop: 10,
+  },
+  linkButtonOrange: {
+    backgroundColor: '#FFA500',
+    padding: 15,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  linkText: {
+    color: '#fff',
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
 });
 

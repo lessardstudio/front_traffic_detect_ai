@@ -47,6 +47,14 @@ export default function TabLayout() {
           href: null, // Это скрывает вкладку из нижнего меню, если вы не хотите показывать ее там
         }}
       />
+      <Tabs.Screen
+        name="AllResultsScreen"
+        options={{
+          title: 'Все результаты',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="list.bullet" color={color} />,
+          href: null, // Скрываем из нижнего меню
+        }}
+      />
     </Tabs>
   );
 }
