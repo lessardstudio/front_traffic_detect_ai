@@ -388,7 +388,7 @@ export default function Explore() {
                         ({Math.round((result.correctAnswers / result.totalQuestions) * 100)}%)
                       </Text>
                       <Text style={styles.resultTime}>
-                        Время: {result.examTime !== ":" && result.examTime !== "" ? result.examTime + " • " : ""}{formatDate(result.timestamp)}
+                        Время: {formatDate(result.timestamp)}
                       </Text>
                     </View>
                   ))}
