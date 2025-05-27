@@ -1,6 +1,7 @@
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import Constants from 'expo-constants';
@@ -309,6 +310,9 @@ export default function Index() {
     iddrom: 0
   });
 
+  // Состояние для истории результатов
+  const [history, setHistory] = useState<DetectionBox[]>([]);
+
   const getDataBySign = (signClass: string): SignData => {
     console.log('Поиск знака:', signClass);
     
@@ -480,7 +484,7 @@ export default function Index() {
       if (!cameraRef.current) return;
       const result = await cameraRef.current.takePictureAsync({
         base64: false,
-        quality: 1,
+        quality: 0.7,
       });
       console.log('Picture taken', result.uri);
       setLoading(true);
@@ -547,6 +551,32 @@ export default function Index() {
     // Убираем автоматический захват фото
     return () => {};
   }, []);
+
+  // Загрузка истории при старте
+  useEffect(() => {
+    (async () => {
+      try {
+        const stored = await AsyncStorage.getItem('detect_frame_history');
+        if (stored) {
+          setHistory(JSON.parse(stored));
+        }
+      } catch (e) {
+        console.error('Ошибка загрузки истории:', e);
+      }
+    })();
+  }, []);
+
+  // Сохраняем новый результат в историю после получения serverResponse
+  useEffect(() => {
+    if (serverResponse && serverResponse.objects && serverResponse.objects.length > 0) {
+      const mostConfident = serverResponse.objects.sort((a, b) => b.confidence - a.confidence)[0];
+      setHistory(prev => {
+        const newHistory = [mostConfident, ...prev.filter(item => item.class !== mostConfident.class)].slice(0, 5);
+        AsyncStorage.setItem('detect_frame_history', JSON.stringify(newHistory));
+        return newHistory;
+      });
+    }
+  }, [serverResponse]);
 
   if (!permission?.granted) {
     return (
@@ -681,7 +711,20 @@ export default function Index() {
           </Text>
         </View>
       )}
-      
+      <View style={{ position: 'absolute', top: 55, bottom: 0, left: 15,}}>
+        <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+        {history.map((item, idx) => (
+          <View key={idx} style={{ marginHorizontal: 4, alignItems: 'center',}}>
+            <View style={{ width: idx == 0 ? 32:16, height:  idx == 0 ? 32:16, justifyContent: 'center', alignItems: 'center', backgroundColor: 'transparent', zIndex: 999-idx, transform: [{ scale: idx == 0 ? 0.7 : 0.4 }], marginRight:  idx == 0 ? 12 : 4 }}>
+              {renderSvg(getDataBySign(item.class))}
+            </View>
+          </View>
+        ))}
+      </View>
+      <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ color: 'white', fontSize: 10, textAlign: 'center', marginTop: 15, fontWeight: 'bold' }}>История распознанных знаков</Text>
+      </View>
+      </View>
       <View style={styles.statusBar}>
         <Text style={[styles.statusText, { color: isConnected ? 'green' : 'red' }]}>
           {isConnected ? 'ONLINE' : 'OFFLINE'}
@@ -707,6 +750,8 @@ export default function Index() {
           )}
         </View>
       )}
+
+      
     </View>
   );
 }

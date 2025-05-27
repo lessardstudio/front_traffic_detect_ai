@@ -149,6 +149,13 @@ export default function Explore() {
       });
 
       if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          await AsyncStorage.removeItem('authToken');
+          setToken(null);
+          setUserInfo(null);
+          setErrorMessage('Сессия истекла. Пожалуйста, войдите снова.');
+          return;
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -177,64 +184,22 @@ export default function Explore() {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Ошибка при получении результатов экзаменов: HTTP ${response.status}`, errorText);
-        
-        // Если не удается получить данные с сервера, используем фиктивные данные
-        if (response.status === 404 || response.status === 405) {
-          console.log('Используем фиктивные данные для демонстрации интерфейса');
-          
-          // Фиктивные данные результатов экзаменов
-          const mockExamResults: ExamResult[] = [
-            {
-              id: 1,
-              correctAnswers: 18,
-              totalQuestions: 20,
-              examTime: '05:30',
-              timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-              urlRef: 'https://www.drom.ru/pdd/exam/result'
-            },
-            {
-              id: 2,
-              correctAnswers: 15,
-              totalQuestions: 20,
-              examTime: '06:15',
-              timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-              urlRef: 'https://www.drom.ru/pdd/exam/result'
-            },
-            {
-              id: 3,
-              correctAnswers: 19,
-              totalQuestions: 20,
-              examTime: '04:45',
-              timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-              urlRef: 'https://www.drom.ru/pdd/exam/result'
-            },
-            {
-              id: 4,
-              correctAnswers: 14,
-              totalQuestions: 15,
-              examTime: '03:20',
-              timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-              urlRef: 'https://www.drom.ru/pdd/themes/traffic_signs/training/result'
-            },
-            {
-              id: 5,
-              correctAnswers: 13,
-              totalQuestions: 15,
-              examTime: '02:50',
-              timestamp: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
-              urlRef: 'https://www.drom.ru/pdd/themes/traffic_signs/training/result'
-            }
-          ];
-          
-          // Сортируем от новых к старым
-          mockExamResults.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-          setExamResults(mockExamResults);
+        if (response.status === 401 || response.status === 403) {
+          await AsyncStorage.removeItem('authToken');
+          setToken(null);
+          setUserInfo(null);
+          setErrorMessage('Сессия истекла. Пожалуйста, войдите снова.');
+          setIsLoading(false);
           return;
         }
-        
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error(`Ошибка при получении результатов экзаменов: HTTP ${response.status}`, errorText);
+        // Если не удается получить данные с сервера, используем фиктивные данные
+        if (response.status === 404 || response.status === 405) {
+          setExamResults([]);
+        }
+        setIsLoading(false);
+        return;
       }
 
       const data = await response.json();

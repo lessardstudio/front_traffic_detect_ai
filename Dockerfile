@@ -1,6 +1,6 @@
 # Используем Node.js версии 22.10.0 как базовый образ
+FROM ubuntu:22.04
 FROM node:22.10.0
-
 # Устанавливаем рабочую директорию
 WORKDIR /app
 
@@ -9,6 +9,7 @@ COPY package*.json ./
 
 # Устанавливаем зависимости
 RUN npm install
+RUN npm install -g eas-cli
 
 # Копируем остальной код приложения
 COPY . .
@@ -17,7 +18,7 @@ COPY . .
 # RUN npm run build
 
 # Открываем порт, который будет использоваться приложением
-EXPOSE 9999
+EXPOSE 8082
 
 # Команда для запуска приложения
-CMD ["npm", "run", "serve"] 
+CMD ["npm", "run", "buildapplocal"] 

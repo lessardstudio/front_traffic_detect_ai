@@ -10,6 +10,7 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "buildapp": "eas build --profile production --platform android",
+    "buildapplocal": "eas build --local --profile production --platform android",
     "buildappdev": "eas build --profile development --platform android",
     "buildrun": "eas build:run -p android",
     "buildrundev": "eas build:run -p android --profile development"

@@ -4,10 +4,10 @@ services:
   app:
     build: .
     ports:
-      - "9999:9999"
+      - "8082:8082"
     volumes:
       - .:/app
       - /app/node_modules
     environment:
       - NODE_ENV=development
-    command: ["npm", "run", "serve"] 
+    command: ["npm", "run", "buildapplocal"] 
