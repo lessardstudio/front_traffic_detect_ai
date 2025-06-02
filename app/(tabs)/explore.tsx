@@ -38,7 +38,8 @@ export default function Explore() {
           setToken(storedToken);
         }
       } catch (error) {
-        console.error('Ошибка при получении токена:', error);
+        //console.error('Ошибка при получении токена:', error);
+        setErrorMessage('Ошибка при получении токена: ' + (error instanceof Error ? error.message : 'Неизвестная ошибка'));
       }
     };
     
@@ -96,7 +97,7 @@ export default function Explore() {
         setErrorMessage('Ошибка авторизации: токен не получен');
       }
     } catch (error) {
-      console.error('Ошибка авторизации:', error);
+      //console.error('Ошибка авторизации:', error);
       setErrorMessage('Ошибка авторизации: ' + (error instanceof Error ? error.message : 'Неизвестная ошибка'));
     }
   };
@@ -338,9 +339,10 @@ export default function Explore() {
             <View style={styles.resultsContainer}>
               <Text style={styles.resultsTitle}>Последние результаты экзаменов:</Text>
               
-              {isLoading ? (
+              {/* {isLoading ? (
                 <Text style={styles.loadingText}>Загрузка результатов...</Text>
-              ) : examResults.length > 0 ? (
+              ) : */}
+              {examResults.length > 0 ? (
                 <>
                   {examResults
                     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
