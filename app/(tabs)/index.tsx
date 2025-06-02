@@ -272,6 +272,7 @@ interface VideoDetection {
 }
 
 interface SignData {
+  number: string;
   title: string;
   svgComponent?: any;
   description: string;
@@ -304,6 +305,7 @@ export default function Index() {
 
   // Состояние для хранения данных о текущем знаке
   const [currentSignData, setCurrentSignData] = useState<SignData>({
+    number: '0.0',
     title: 'Неизвестный знак',
     description: 'Описание отсутствует',
     svgXml: DEFAULT_SVG,
@@ -326,6 +328,7 @@ export default function Index() {
       if (svgByNumber) {
         console.log('Найден SVG по номеру знака:', signNumber);
         return {
+          number: signNumber,
           title: signClass,
           svgComponent: svgByNumber,
           description: `Не загружен`,
@@ -362,6 +365,7 @@ export default function Index() {
                       const svgComponent = SVG_FILES[filename];
                       if (svgComponent) {
                         return {
+                          number: sign.number,
                           title: sign.title || sign.number || signClass,
                           svgComponent: svgComponent,
                           description: sign.description || 'Описание отсутствует',
@@ -375,6 +379,7 @@ export default function Index() {
                   for (const key in SVG_FILES) {
                     if (sign.title?.includes(key) || signClass.includes(key)) {
                       return {
+                        number: sign.number,
                         title: sign.title || sign.number || signClass,
                         svgComponent: SVG_FILES[key],
                         description: sign.description || 'Описание отсутствует',
@@ -384,6 +389,7 @@ export default function Index() {
                   }
                   
                   return {
+                    number: sign.number,
                     title: sign.title || sign.number || signClass,
                     svgXml: DEFAULT_SVG,
                     description: sign.description || 'Описание отсутствует',
@@ -407,6 +413,7 @@ export default function Index() {
                 for (const key in SVG_FILES) {
                   if (sign.title?.includes(key) || signClass.includes(key)) {
                     return {
+                      number: sign.number,
                       title: sign.title || sign.number || signClass,
                       svgComponent: SVG_FILES[key],
                       description: sign.description || 'Описание отсутствует',
@@ -416,6 +423,7 @@ export default function Index() {
                 }
                 
                 return {
+                  number: sign.number,
                   title: sign.title || sign.number || signClass,
                   svgXml: DEFAULT_SVG,
                   description: sign.description || 'Описание отсутствует',
@@ -429,6 +437,7 @@ export default function Index() {
     } catch (error) {
       console.error('Error loading signs.json:', error);
       return {
+        number: '0.0',
         title: signClass || 'Неизвестный знак',
         svgXml: DEFAULT_SVG,
         description: 'Описание отсутствует',
@@ -438,6 +447,7 @@ export default function Index() {
     
     console.log('Знак не найден, использую запасной:', signClass);
     return {
+      number: '0.0',
       title: signClass || 'Неизвестный знак',
       svgXml: DEFAULT_SVG,
       description: 'Описание отсутствует',
@@ -640,15 +650,18 @@ export default function Index() {
                 {loading ? <ActivityIndicator size="small" color="black" /> :
                 <Text style={styles.modalText}>Фото успешно обработано!</Text>}
                 {serverResponse && serverResponse.objects && serverResponse.objects.length > 0 && 
-                  <View style={{ alignItems: 'center', maxHeight: 400, width: '90%' }}>
+                  <View style={{ alignItems: 'center', maxHeight: '90%', width: '90%' }}>
                     {/* <Text style={styles.modalText}>{currentSignData.title}</Text> */}
                     <View style={styles.svgContainer}>
                       {renderSvg(currentSignData)}
                     </View>
                     <Text style={styles.serverResponse}>
+                      Знак {currentSignData.number}{" "}
                       {serverResponse.objects
-                        .sort((a, b) => b.confidence - a.confidence)[0].class} 
-                      ({Math.round(serverResponse.objects.sort((a, b) => b.confidence - a.confidence)[0].confidence * 100)}%)
+                        .sort((a, b) => b.confidence - a.confidence)[0].class}
+                    </Text>
+                    <Text style={{ color: 'red', padding: 4, fontSize: 8, backgroundColor: '#ff000011', borderRadius:4 }}>
+                      *если вместе со знаком приоритета используется светофор, то светофор отменяет знак приоритета(хочешь узнать подробнее - жми на кнопку "Подробнее о знаке")
                     </Text>
                     {currentSignData.iddrom !== undefined && currentSignData.iddrom !== 0 && (
                       <TouchableOpacity
@@ -656,7 +669,6 @@ export default function Index() {
                         onPress={() => {
                           const url = `https://www.drom.ru/pdd/pdd/signs/#${currentSignData.iddrom}`;
                           console.log('Переход на страницу:', url);
-                          // Здесь можно добавить логику для открытия URL в браузере, например, с использованием Linking из react-native
                           navigation.navigate('WebViewScreen', { url: url });
                           setModalVisible(!modalVisible)
                         }}
@@ -885,7 +897,6 @@ const styles = StyleSheet.create({
   button: {
     borderRadius: 20,
     padding: 10,
-    elevation: 2,
   },
   buttonClose: {
     backgroundColor: '#2196F3',
@@ -911,8 +922,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   svgContainer: {
-    width: 200, 
-    height: 200,
+    width: 100, 
+    height: 100,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -934,6 +945,7 @@ const styles = StyleSheet.create({
   buttonLink: {
     backgroundColor: '#4CAF50',
     marginTop: 10,
+    
   },
   linkButtonOrange: {
     backgroundColor: '#FFA500',
